@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Statistics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-v4-grid-only@1.0.0/dist/bootstrap-grid.min.css">
+  </head>
+  <body>
+    <div class="container">
+        <div class="col-8">
+            <canvas id="spendPerCustomerChart"></canvas>
+        </div>
+    </div>
+
+<script>
+    let spendPerCustomerCtx = document.getElementById("spendPerCustomerChart").getContext("2d");
+    let spendPerCustomerChart = new Chart(spendPerCustomerCtx, {
+    type: "line",
+    data:{
+      labels:[{% for item in labels %}  {{item}},   {% endfor %}],
+      datasets:[
+        {
+          label:"Share Holdings",
+          backgroundColor:"",
+          borderColor:"#79aec8",
+          data:[{% for item in values %}  {{item}},   {% endfor %}]
+        }
+      ]
+    },
+    options: {
+        scales: {
+              y: {
+                  beginAtZero: true
+              }
+          },
+        responsive: true,
+    }
+  });
+</script>
+
+</body>
+</html>

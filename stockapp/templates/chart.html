@@ -1,0 +1,223 @@
+{% load static%}
+<!DOCTYPE html>
+<html>
+<head>
+<title>Share Holdings</title>
+<style>
+  span{
+    text-align: center;
+    margin:auto;
+    display:block;
+  }
+  /* #myChart{
+    height: 300px !important;
+    width: 500px !important;
+  } */
+
+  /* #spendPerCustomerChart{
+    height: 350px !important;
+    width: 700px !important;
+  } */
+</style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'zebra_datepicker.css' %}">
+</head>
+<body>
+  <div class="row">
+    <div class="col-6">
+      <form action="{% url 'chart' %}">
+        <select name="stocks" id="selectstock">
+          <option value="BFC">BFC</option>
+          <option value="CFCL">CFCL</option>
+          <option value="HDL">HDL</option>
+        </select>
+        <button type="submit"><i class=""></i>Submit</button>
+      </form>
+      <br>
+      <canvas id="myChart"></canvas>
+      <span id="span">Brokerwise Holding</span>
+    </div>
+
+    <div class="col-6">
+      <form action="{% url 'chart' %}">
+        <select name="stock" id="stockselection">
+          <option value="BFC">BFC</option>
+          <option value="CFCL">CFCL</option>
+          <option value="HDL">HDL</option>
+        </select>
+        <select name="broker" id="selectbroker">
+          <!-- <option value="5">Broker No. 5</option>
+          <option value="6">Broker No. 6</option> -->
+        </select>
+        <label for="From">From:</label>
+        <input type="date" id="fromdate" name="fromdate"> 
+        <label for="To">To:</label>
+        <input type="date" id="todate" name="todate"> 
+        <button type="submit"><i class=""></i>Submit</button>
+      </form>
+      <br>
+      <canvas id="spendPerCustomerChart"></canvas>
+      <span>Stock vs Brokers</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-6" style="margin-top: 3%;">
+      <span>Stock To Watch</span>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Stock</th>
+            <th scope="col">Yesterday Trans</th>
+            <th scope="col">Broker</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in data %}
+          <tr>
+            <td>{{item.stock}}</td>
+            <td>{{item.percentage|floatformat}}%</td>
+            <td>{{item.broker}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+</div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{% static 'zebra_datepicker.min.js' %}"></script>
+
+  <script>
+    $(document).ready(function() {
+      //$("#consultdate").datepicker({ dateFormat: 'yy/mm/dd' }).datepicker("setDate", "today");
+      //select * from holdingspermonth where broker_id=1 and stock_id='HDL' order by date desc
+      brokers();
+      $('#selectstock').select2();
+      $('#stockselection').select2();
+      $('#selectbroker').select2();
+
+      $('#fromdate').Zebra_DatePicker();
+      $('#todate').Zebra_DatePicker();
+
+      var url_string = window.location.href;
+      var url = new URL(url_string);
+
+      var stocks = url.searchParams.get("stocks");
+      if(stocks != null){
+        console.log(stocks)
+        $('#selectstock').val(stocks).select2();
+      }
+
+      var stock = url.searchParams.get("stock");
+      if(stock != null){
+        console.log(stock)
+        $('#stockselection').val(stock).select2();
+      }
+      var broker = url.searchParams.get("broker");
+      if(broker != null){
+        console.log(broker)
+        $('#selectbroker').val(broker).select2();
+      }
+      var fromdate = url.searchParams.get("fromdate");
+      if(fromdate != null){
+        console.log(fromdate)
+        $('#fromdate').val(fromdate);
+      }
+      var todate = url.searchParams.get("todate");
+      if(todate != null){
+        console.log(todate)
+        $('#todate').val(todate);
+      }
+    });
+
+    //get all brokers
+    function brokers() {
+    $('#selectbroker').empty();
+    //$('#categoryId').append(`<option value="0">Select Category</option>`);
+    $.ajax({
+        url: `{% url "getAllBrokers" %}`,
+        async: false,
+        type: 'get',
+        dataType: 'JSON',
+        contentType: "application/json",
+        success: function (res) {
+            $.each(res, function (key, val) {
+              debugger;
+                var option = new Option("Broker No. " + val.broker_number, val.broker_number);
+                $('#selectbroker').append($(option));
+            });
+        },
+        error: function () {
+            console.log('No result');
+        }
+    });
+}
+
+    // $("#selectstock").on("change", function () { 
+    //   debugger; 
+    //   stockName = $("#selectstock").val();
+    //   changeStock(stockName);
+    // });
+
+  
+  //bar chart
+  const ctx = document.getElementById('myChart').getContext('2d');
+  const myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels : [{% for item in labels %}  {{item}},   {% endfor %}],
+          datasets: [{
+            label: "Share Holdings",
+            barPercentage: 0.5,
+            data : [{% for item in values %}  {{item}},   {% endfor %}],
+            backgroundColor: '#79AEC8',
+            borderColor: '#417690',
+            borderRadius: 20,
+            borderWidth: 1,
+            // borderSkipped: false,
+          }]
+      },
+      options: {
+          scales: {
+              y: {
+                  beginAtZero: true
+              }
+          }
+      }
+  });
+
+
+  //line chart
+  let spendPerCustomerCtx = document.getElementById("spendPerCustomerChart").getContext("2d");
+    let spendPerCustomerChart = new Chart(spendPerCustomerCtx, {
+    type: "line",
+    data:{
+      labels:[{% for item in chart_labels %}  {{item}},   {% endfor %}],
+      datasets:[
+        {
+          label:"Share Holdings",
+          backgroundColor:"",
+          borderColor:"#00C7F2",
+          borderWidth: 2,
+          lineTension: 0.6,
+          data:[{% for item in chart_values %}  {{item}},   {% endfor %}]
+        }
+      ]
+    },
+    options: {
+      elements: {
+        point:{
+            radius: 1
+        }
+      },
+      responsive: true
+    }
+  });
+  </script>
+
+</body>
+</html>
