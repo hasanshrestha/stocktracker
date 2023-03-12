@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-y@he^^t4jw^t=p5mb1(b$p&rkcha-c2o+7s&6r)$+!ikzugw+j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['64.227.152.11']
 
 
 # Application definition
@@ -76,14 +76,25 @@ WSGI_APPLICATION = 'stocktracker.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+# DATABASES = {
+#         "default": {
+#         "ENGINE": "django.db.backends.postgresql_psycopg2",
+#         "NAME": "stocktracker",
+#         "USER": "postgres",
+#         "PASSWORD": "pgadmin",
+#         "HOST": "localhost",
+#         "PORT": "5432",
+#     }
+# }
+
 DATABASES = {
         "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME": "stocktracker",
-        "USER": "postgres",
-        "PASSWORD": "pgadmin",
+        "USER": "hasan",
+        "PASSWORD": "admin@123",
         "HOST": "localhost",
-        "PORT": "5432",
+        "PORT": "",
     }
 }
 
