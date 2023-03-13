@@ -6,21 +6,33 @@ import os
 from django.conf import settings
 from .models import Broker, Stock, Holdings, HoldingsPerMonth, YesterdayTransaction
 from django.db import transaction
-from .tasks import extract_csv, extract_csv_per_month, save_daily_transactions, save_daily_transactions
+from .tasks import extract_csv, extract_csv_per_month, save_daily_transactions,
 from django.http import JsonResponse
 from django.core import serializers
 from datetime import datetime, timedelta
-from celery import group
+from celery import group, chain
 
 # def testCelery(request):
 #     group(extract_csv.delay(), save_csv_per_month.delay())
 #     return HttpResponse("Done")
 
-# Create your views here.
+# Create your views here.5137
 def save_csv_data(request):
-    extract_csv.apply()
-    extract_csv_per_month.apply()
-    save_daily_transactions.apply()
+    # Group the tasks together
+    task_group = group(extract_csv.s(), extract_csv_per_month.s())
+
+    # Chain the group task with the final task
+    task_chain = chain(task_group, save_daily_transactions.s())
+
+    # Launch the task chain
+    result = task_chain.apply_async()
+
+    # Wait for the tasks to complete and retrieve the results
+    results = result.get()
+    #print(results)
+    # extract_csv.apply()
+    # extract_csv_per_month.apply()
+    # save_daily_transactions.apply()
     return HttpResponse("Done")
 
 
