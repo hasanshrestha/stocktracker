@@ -133,9 +133,7 @@ def save_daily_transactions(request):
     brokers = Broker.objects.all()
     st = time.time()
     for stock in stocks:
-        print("Stock: ", stocks)
         for broker in brokers:
-            print("Broker: ", broker)
             if HoldingsPerMonth.objects.filter(stock = stock, broker = broker).exists():
                 print("!!!!!!!!!!")
                 data = HoldingsPerMonth.objects.filter(stock = stock, broker = broker).order_by("-date")[:2]

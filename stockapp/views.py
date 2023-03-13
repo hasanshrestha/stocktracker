@@ -18,9 +18,9 @@ from celery import group
 
 # Create your views here.
 def save_csv_data(request):
-    extract_csv.delay()
-    extract_csv_per_month.delay()
-    save_daily_transactions.delay()
+    extract_csv.apply()
+    extract_csv_per_month.apply()
+    save_daily_transactions.apply()
     return HttpResponse("Done")
 
 
