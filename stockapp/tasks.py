@@ -128,7 +128,7 @@ def extract_csv_per_month(request):
 
 
 @shared_task(bind=True)
-def save_daily_transactions(request):
+def save_daily_transactions(request, additional_context):
     stocks = Stock.objects.all()
     brokers = Broker.objects.all()
     st = time.time()

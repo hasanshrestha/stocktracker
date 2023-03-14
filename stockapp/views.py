@@ -6,29 +6,41 @@ import os
 from django.conf import settings
 from .models import Broker, Stock, Holdings, HoldingsPerMonth, YesterdayTransaction
 from django.db import transaction
-from .tasks import extract_csv, extract_csv_per_month, save_daily_transactions,
+from .tasks import extract_csv, extract_csv_per_month, save_daily_transactions
 from django.http import JsonResponse
 from django.core import serializers
 from datetime import datetime, timedelta
-from celery import group, chain
+from celery import group, chain, chord
 
 # def testCelery(request):
 #     group(extract_csv.delay(), save_csv_per_month.delay())
 #     return HttpResponse("Done")
 
-# Create your views here.5137
+# Create your views here.
 def save_csv_data(request):
-    # Group the tasks together
-    task_group = group(extract_csv.s(), extract_csv_per_month.s())
+    # Create a group of tasks to be executed in parallel
+    parallel_tasks = group(extract_csv.s(), extract_csv_per_month.s())
 
-    # Chain the group task with the final task
-    task_chain = chain(task_group, save_daily_transactions.s())
+    # Create a chord by combining the group of tasks with a callback task
+    chord_task = chord(parallel_tasks)(save_daily_transactions.s())
 
-    # Launch the task chain
-    result = task_chain.apply_async()
+    # Execute the chord asynchronously
+    result = chord_task.apply_async()
 
-    # Wait for the tasks to complete and retrieve the results
-    results = result.get()
+    # Wait for the result
+    result.get()
+
+    # # Group the tasks together
+    # task_group = group(extract_csv.s(), extract_csv_per_month.s())
+
+    # # Chain the group task with the final task
+    # task_chain = chain(task_group, save_daily_transactions.s())
+
+    # # Launch the task chain
+    # result = task_chain.apply_async()
+
+    # # Wait for the tasks to complete and retrieve the results
+    # results = result.get()
     #print(results)
     # extract_csv.apply()
     # extract_csv_per_month.apply()
